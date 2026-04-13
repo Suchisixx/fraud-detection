@@ -1,0 +1,11 @@
+v1
+{"path":"file:///workspace/data/stream_input/batch_0000/part-00000-e83c34f1-e7d4-469b-90db-58cde281257e-c000.csv","timestamp":1776081789034,"batchId":0}
+{"path":"file:///workspace/data/stream_input/batch_0001/part-00000-99fd7a38-2174-4a23-820e-f2e5faae0d04-c000.csv","timestamp":1776081798266,"batchId":1}
+{"path":"file:///workspace/data/stream_input/batch_0002/part-00000-20c8777b-bfef-4006-b10f-77c8380be394-c000.csv","timestamp":1776081807242,"batchId":2}
+{"path":"file:///workspace/data/stream_input/batch_0003/part-00000-3afe44a7-3607-4534-afc9-23ca23adf610-c000.csv","timestamp":1776081817367,"batchId":3}
+{"path":"file:///workspace/data/stream_input/batch_0004/part-00000-09484a41-2739-421d-9528-fbff29d44a9e-c000.csv","timestamp":1776081826855,"batchId":4}
+{"path":"file:///workspace/data/stream_input/batch_0005/part-00000-2b99b709-76b7-4c9a-9cae-889863705544-c000.csv","timestamp":1776081842233,"batchId":5}
+{"path":"file:///workspace/data/stream_input/batch_0006/part-00000-f5675449-9f8f-4521-8f44-18d3817d2b79-c000.csv","timestamp":1776081858857,"batchId":6}
+{"path":"file:///workspace/data/stream_input/batch_0007/part-00000-f723c577-9a06-49ab-871a-4d9cd1d15468-c000.csv","timestamp":1776081881567,"batchId":7}
+{"path":"file:///workspace/data/stream_input/batch_0008/part-00000-9ddde9a8-a0fe-46c6-bf09-c49302caeb0d-c000.csv","timestamp":1776081892146,"batchId":8}
+{"path":"file:///workspace/data/stream_input/batch_0009/part-00000-3c752a2e-1eb1-4e64-88b5-4e0556efd3df-c000.csv","timestamp":1776081903155,"batchId":9}

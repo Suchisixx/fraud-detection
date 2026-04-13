@@ -1,0 +1,15 @@
+services:
+  fraud:
+    build: .
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    environment:
+      - WORKSPACE_ROOT=/workspace
+      - PYTHONPATH=/workspace
+      - SPARK_LOCAL_DIRS=/tmp/spark-tmp
+      - SPARK_SHUFFLE_PARTITIONS=8
+      - SPARK_DRIVER_MEMORY=2g
+    mem_limit: 4g
+    mem_reservation: 2g
+    restart: unless-stopped
