@@ -14,8 +14,18 @@ from src.common.features import normalize_transaction_columns
 from src.common.schemas import PAYSIM_SCHEMA
 from src.common.spark import get_spark
 
+"""
+Vai trò:
+- Tầng Bronze: ingest dữ liệu CSV dạng stream vào Delta Bronze.
+
+Liên hệ tiêu chí:
+- Kiến trúc dữ liệu và khả năng mở rộng: đây là tầng ingest đầu tiên trong mô hình Bronze-Silver-Gold.
+- Hiệu quả xử lý: partition theo `type` để các tầng sau đọc hiệu quả hơn.
+"""
+
 
 def _write_bronze_batch(batch_df, batch_id: int) -> None:
+    """Ghi một micro-batch Bronze và in thống kê phục vụ giám sát realtime."""
     if batch_df.isEmpty():
         return
     started_at = time.time()
@@ -27,6 +37,7 @@ def _write_bronze_batch(batch_df, batch_id: int) -> None:
 
 
 def main() -> None:
+    # Bronze nên được bật trước để sẵn sàng nhận dữ liệu từ simulator.
     ensure_runtime_dirs()
     spark = get_spark("TangBronze")
 
@@ -45,6 +56,7 @@ def main() -> None:
         .withColumn("source_file", F.input_file_name())
     )
 
+    # In execution plan để phục vụ phần giải trình về tối ưu và data pipeline.
     bronze_df.explain(mode="simple")
     query = (
         bronze_df.writeStream.foreachBatch(_write_bronze_batch)

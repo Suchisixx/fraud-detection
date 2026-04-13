@@ -3,8 +3,22 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+"""
+Vai trò:
+- Tập trung toàn bộ cấu hình dùng chung cho dự án.
+- Đây là "điểm vào" để giải thích kiến trúc dữ liệu, đường dẫn lưu trữ,
+  ngưỡng luật nghiệp vụ và tham số vận hành.
+
+Liên hệ tiêu chí:
+- Kiến trúc dữ liệu và khả năng mở rộng: gom path / threshold / runtime dirs
+  về một nơi để dễ mở rộng và quản trị.
+- Hình thức báo cáo và giải trình: giúp trình bày rõ dữ liệu đi qua những thư
+  mục nào và hệ thống phụ thuộc những ngưỡng nào.
+"""
+
 
 def _resolve_root() -> Path:
+    """Xác định thư mục gốc của project theo biến môi trường hoặc theo file hiện tại."""
     env_root = os.getenv("WORKSPACE_ROOT")
     if env_root:
         return Path(env_root).expanduser().resolve()
@@ -18,7 +32,6 @@ REFERENCE_DIR = DATA_DIR / "reference"
 STREAM_INPUT_DIR = DATA_DIR / "stream_input"
 DELTA_DIR = DATA_DIR / "delta"
 CHECKPOINT_DIR = DELTA_DIR / "checkpoints"
-MLFLOW_DIR = DATA_DIR / "mlflow"
 REPORTS_DIR = DATA_DIR / "reports"
 
 PAYSIM_CSV = RAW_DIR / "paysim.csv"
@@ -93,25 +106,23 @@ RUNTIME_DIRS = [
     BRONZE_CHECKPOINT_DIR,
     SILVER_CHECKPOINT_DIR,
     GOLD_CHECKPOINT_DIR,
-    MLFLOW_DIR,
     REPORTS_DIR,
 ]
 
 
 def ensure_runtime_dirs() -> None:
+    """Tạo sẵn các thư mục runtime để job có thể chạy độc lập từng bước."""
     for path in RUNTIME_DIRS:
         path.mkdir(parents=True, exist_ok=True)
 
 
 def path_to_str(path: Path) -> str:
+    """Chuẩn hóa đường dẫn về chuỗi POSIX để Spark đọc ổn định trong Docker."""
     return path.resolve().as_posix()
 
 
-def path_to_uri(path: Path) -> str:
-    return path.resolve().as_uri()
-
-
 def delta_table_exists(path: Path) -> bool:
+    """Kiểm tra nhanh một thư mục đã là Delta table hay chưa."""
     return (path / "_delta_log").exists()
 
 
@@ -129,6 +140,5 @@ PATHS = {
     "bronze_checkpoint": path_to_str(BRONZE_CHECKPOINT_DIR),
     "silver_checkpoint": path_to_str(SILVER_CHECKPOINT_DIR),
     "gold_checkpoint": path_to_str(GOLD_CHECKPOINT_DIR),
-    "mlflow": path_to_str(MLFLOW_DIR),
     "reports": path_to_str(REPORTS_DIR),
 }

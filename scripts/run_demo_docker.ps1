@@ -1,3 +1,6 @@
+# Vai trò:
+# - Script chạy nhanh cho phần demo realtime.
+# - Tự bật 3 luồng Bronze / Silver / Gold ở nền, sau đó chạy simulator.
 $ErrorActionPreference = "Stop"
 
 docker compose up -d --build

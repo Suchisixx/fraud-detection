@@ -1,5 +1,8 @@
+# Thư viện lõi cho xử lý dữ liệu phân tán và lưu trữ Delta.
 pyspark==3.5.1
 delta-spark==3.2.0
+
+# Thư viện học máy và trực quan hóa phục vụ huấn luyện + báo cáo.
 scikit-learn==1.4.2
 matplotlib==3.8.4
 pandas==2.2.2

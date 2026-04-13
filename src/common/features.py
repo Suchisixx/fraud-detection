@@ -6,6 +6,18 @@ from pyspark.sql import DataFrame, functions as F
 
 from src.common.config import LARGE_TXN_THRESHOLD, TYPE_TO_INDEX
 
+"""
+Vai trò:
+- Chuẩn hóa cột giao dịch.
+- Tạo khóa giao dịch và feature engineering cho tầng Silver / train model.
+
+Liên hệ tiêu chí:
+- Độ chính xác và giá trị thực tiễn: feature engineering là phần trực tiếp giúp
+  mô hình và rule engine nhận biết hành vi gian lận.
+- Hiệu quả xử lý và tối ưu mã nguồn: tái sử dụng chung một bộ hàm cho cả train
+  và streaming để tránh lệch logic giữa offline và online.
+"""
+
 RAW_TO_NORMALIZED = {
     "nameOrig": "nameorig",
     "oldbalanceOrg": "oldbalanceorig",
@@ -18,10 +30,18 @@ RAW_TO_NORMALIZED = {
 }
 
 def _build_type_index_map():
+    """Tạo map loại giao dịch -> chỉ số số học để mô hình có thể sử dụng."""
     return F.create_map([F.lit(x) for x in chain(*TYPE_TO_INDEX.items())])
 
 
 def normalize_transaction_columns(df: DataFrame) -> DataFrame:
+    """
+    Chuẩn hóa tên cột theo một convention thống nhất.
+
+    Ghi chú:
+    - Bước này giúp Bronze, Silver, Train và Gold dùng chung schema logic.
+    - `txn_id` được tạo sớm để phục vụ chống trùng và truy vết giao dịch.
+    """
     normalized = df
     for old_name, new_name in RAW_TO_NORMALIZED.items():
         if old_name in normalized.columns and new_name not in normalized.columns:
@@ -49,6 +69,13 @@ def normalize_transaction_columns(df: DataFrame) -> DataFrame:
 
 
 def clean_transactions(df: DataFrame) -> DataFrame:
+    """
+    Làm sạch dữ liệu đầu vào.
+
+    Vai trò:
+    - Loại bỏ giao dịch lỗi rõ ràng.
+    - Loại bỏ dòng trùng trước khi vào Silver / model.
+    """
     return (
         df.filter(F.col("amount") > 0)
         .filter(F.col("nameorig").isNotNull())
@@ -58,6 +85,13 @@ def clean_transactions(df: DataFrame) -> DataFrame:
 
 
 def add_feature_columns(df: DataFrame) -> DataFrame:
+    """
+    Sinh các đặc trưng nghiệp vụ cho fraud detection.
+
+    Các feature này phục vụ đồng thời:
+    - rule-based detection
+    - machine learning detection
+    """
     type_index_map = _build_type_index_map()
     return (
         df.withColumn("type_upper", F.upper(F.col("type")))
@@ -91,4 +125,5 @@ def add_feature_columns(df: DataFrame) -> DataFrame:
 
 
 def build_silver_frame(df: DataFrame) -> DataFrame:
+    """Pipeline gọn: chuẩn hóa -> làm sạch -> tạo đặc trưng."""
     return add_feature_columns(clean_transactions(normalize_transaction_columns(df)))

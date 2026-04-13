@@ -26,8 +26,25 @@ from src.common.config import (
 from src.common.schemas import SILVER_SCHEMA
 from src.common.spark import ensure_delta_table, get_spark
 
+"""
+Vai trò:
+- Tầng Gold: kết hợp rule-based và machine learning để sinh cảnh báo cuối cùng.
+- Đồng thời tạo metrics và dashboard cho phần demo / báo cáo.
+
+Liên hệ tiêu chí:
+- Độ chính xác và giá trị thực tiễn: đây là lớp hybrid detection.
+- Hình thức báo cáo và giải trình: đây là nơi sinh dashboard, evaluation summary,
+  top risk accounts và bảng alerts để trình bày với giảng viên.
+"""
+
 
 def _score_batch(model: PipelineModel, batch_df: DataFrame) -> DataFrame:
+    """
+    Kết hợp AI + Rule:
+    - ML cho các loại giao dịch trọng tâm.
+    - Rule score lấy từ Silver.
+    - Composite score dùng để ra final alert.
+    """
     base_columns = batch_df.columns
     model_scope = batch_df.filter(F.upper(F.col("type")).isin(*SUPPORTED_MODEL_TYPES))
     rule_only_scope = batch_df.filter(~F.upper(F.col("type")).isin(*SUPPORTED_MODEL_TYPES))
@@ -45,6 +62,7 @@ def _score_batch(model: PipelineModel, batch_df: DataFrame) -> DataFrame:
         .withColumn("ml_prediction", F.lit(0))
     )
 
+    # Đây là công thức hybrid cốt lõi của đồ án.
     return (
         scored_scope.unionByName(fallback_scope)
         .withColumn(
@@ -80,6 +98,7 @@ def _score_batch(model: PipelineModel, batch_df: DataFrame) -> DataFrame:
 
 
 def _render_dashboard(spark) -> None:
+    """Đọc Gold đã chấm điểm để tạo dashboard và file báo cáo phụ trợ."""
     if not delta_table_exists(GOLD_SCORED_DIR):
         return
 
@@ -100,6 +119,7 @@ def _render_dashboard(spark) -> None:
     ).toPandas()
     y_true = eval_pd["isfraud"]
 
+    # So sánh 3 cách phát hiện: Rule, ML, Hybrid.
     metrics_rows = []
     for column_name, label in [("rule_alert", "Luật"), ("ml_prediction", "Máy học"), ("final_alert", "Lai")]:
         metrics_rows.append(
@@ -180,6 +200,7 @@ def _render_dashboard(spark) -> None:
     plt.savefig((REPORTS_DIR / "dashboard.png").as_posix(), dpi=120, bbox_inches="tight")
     plt.close(fig)
 
+    # File top tài khoản rủi ro cao giúp giải trình tính thực tiễn của hệ thống.
     top_accounts = (
         scored.filter("final_alert = 1")
         .groupBy("nameorig")
@@ -196,15 +217,18 @@ def _render_dashboard(spark) -> None:
 
 
 def main() -> None:
+    # Gold là tầng cuối; chỉ chạy khi đã có model và Silver stream.
     ensure_runtime_dirs()
     if not MODEL_DIR.exists():
         raise FileNotFoundError(f"Không tìm thấy mô hình đã huấn luyện tại {MODEL_DIR}. Hãy chạy train_model trước.")
 
     spark = get_spark("TangGold")
     model = PipelineModel.load(PATHS["model"])
+    # Tạo sẵn Silver rỗng để Gold có thể bật trước khi Silver có batch đầu tiên.
     ensure_delta_table(spark, PATHS["silver"], SILVER_SCHEMA, partition_by="type")
 
     def write_gold_batch(batch_df, batch_id: int) -> None:
+        """Chấm điểm một micro-batch, ghi alerts và cập nhật metrics/dashboard."""
         if batch_df.isEmpty():
             return
         started_at = time.time()
@@ -241,6 +265,7 @@ def main() -> None:
             .save(PATHS["gold_alerts"])
         )
 
+        # Đọc lại Gold scored để cập nhật báo cáo tổng hợp sau mỗi batch.
         scored_all = spark.read.format("delta").load(PATHS["gold_scored"])
         metrics_df = (
             scored_all.groupBy("type")

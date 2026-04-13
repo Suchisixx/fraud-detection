@@ -17,12 +17,31 @@ from src.common.config import (
 )
 from src.common.schemas import BLACKLIST_SCHEMA, PAYSIM_SCHEMA
 
+"""
+Vai trò:
+- Quản lý blacklist tham chiếu.
+- Áp dụng toàn bộ rule engine cho bài toán phát hiện gian lận.
+
+Liên hệ tiêu chí:
+- Độ chính xác và giá trị thực tiễn: rule engine bám sát bài toán blacklist,
+  giao dịch lớn, rút cạn tài khoản và chuyển liên tục vào blacklist.
+- Hình thức báo cáo và giải trình: rule dễ giải thích với giảng viên hơn so
+  với chỉ dùng mô hình học máy.
+"""
+
 
 def empty_blacklist_df(spark: SparkSession) -> DataFrame:
+    """Tạo bảng blacklist rỗng để pipeline vẫn chạy được nếu chưa có dữ liệu tham chiếu."""
     return spark.createDataFrame([], BLACKLIST_SCHEMA)
 
 
 def load_blacklist_df(spark: SparkSession) -> DataFrame:
+    """
+    Tải blacklist theo thứ tự ưu tiên:
+    1. Delta table đã có trong hệ thống.
+    2. File seed tham chiếu.
+    3. DataFrame rỗng.
+    """
     if delta_table_exists(BLACKLIST_DIR):
         return spark.read.format("delta").load(BLACKLIST_DIR.as_posix())
 
@@ -41,6 +60,13 @@ def load_blacklist_df(spark: SparkSession) -> DataFrame:
 
 
 def bootstrap_blacklist_reference(spark: SparkSession) -> DataFrame:
+    """
+    Khởi tạo blacklist ban đầu từ các tài khoản fraud đã biết trong PaySim.
+
+    Ghi chú bảo vệ:
+    - Đây là bước chuẩn bị dữ liệu tham chiếu.
+    - Không chạy trong online path để tránh label leakage lúc giải trình.
+    """
     if not PAYSIM_CSV.exists():
         raise FileNotFoundError(f"Không tìm thấy file PaySim CSV tại {PAYSIM_CSV}")
 
@@ -65,12 +91,25 @@ def bootstrap_blacklist_reference(spark: SparkSession) -> DataFrame:
 
 
 def persist_blacklist_reference(seed_df: DataFrame, destination: Path = BLACKLIST_SEED_CSV) -> None:
+    """Lưu blacklist tham chiếu ra CSV để dùng lại ở các lần chạy sau."""
     pdf = seed_df.select("account_id", "reason").toPandas()
     destination.parent.mkdir(parents=True, exist_ok=True)
     pdf.to_csv(destination, index=False)
 
 
 def apply_rule_engine(df: DataFrame, blacklist_df: DataFrame) -> DataFrame:
+    """
+    Áp dụng toàn bộ rule-based detection.
+
+    Các rule chính:
+    - rule_blacklist
+    - rule_large_txn
+    - rule_drain
+    - rule_blacklist_burst
+
+    Tối ưu:
+    - broadcast blacklist vì đây là bảng nhỏ.
+    """
     blacklist_accounts = blacklist_df.select("account_id").dropDuplicates(["account_id"])
     dest_blacklist = F.broadcast(
         blacklist_accounts.select(F.col("account_id").alias("blacklist_dest_account"))
@@ -108,6 +147,7 @@ def apply_rule_engine(df: DataFrame, blacklist_df: DataFrame) -> DataFrame:
         )
     )
 
+    # Cửa sổ theo tài khoản nguồn và step để bắt hành vi chuyển dồn vào blacklist.
     burst_window = Window.partitionBy("nameorig", "step")
     return (
         enriched.withColumn(

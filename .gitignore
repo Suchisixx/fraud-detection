@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Spark / Delta runtime state
+data/delta/
+data/stream_input/
+
+# Generated reports from each run
+data/reports/
+
+# Local dataset artifacts
+data/raw/
+
+# Notebook / OS noise
+.DS_Store

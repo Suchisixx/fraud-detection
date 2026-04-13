@@ -35,8 +35,24 @@ from src.common.rules import apply_rule_engine, load_blacklist_df
 from src.common.schemas import PAYSIM_SCHEMA
 from src.common.spark import get_spark
 
+"""
+Vai trò:
+- Huấn luyện mô hình Random Forest trên dữ liệu lịch sử.
+- Sinh file metrics và biểu đồ phục vụ báo cáo.
+
+Liên hệ tiêu chí:
+- Độ chính xác và giá trị thực tiễn: đây là phần machine learning cốt lõi.
+- Hình thức báo cáo và giải trình: tạo training_metrics.json và training_curves.png.
+"""
+
 
 def _load_training_frame(spark):
+    """
+    Ưu tiên dùng Silver đã xử lý; nếu chưa có thì dựng lại Silver từ dữ liệu gốc.
+
+    Mục tiêu:
+    - Giữ logic feature/rule nhất quán giữa training và streaming.
+    """
     if delta_table_exists(MODEL_DIR.parent / "silver"):
         silver = spark.read.format("delta").load(PATHS["silver"])
         if not silver.isEmpty():
@@ -56,6 +72,7 @@ def _load_training_frame(spark):
 
 
 def main() -> None:
+    # Job offline: nên chạy trước giờ demo để Gold stream chỉ việc tải model.
     ensure_runtime_dirs()
     spark = get_spark("HuanLuyenMoHinhGianLan")
 
@@ -69,6 +86,7 @@ def main() -> None:
     if fraud_count == 0 or normal_count == 0:
         raise RuntimeError("Dữ liệu huấn luyện đang rỗng ở một trong hai lớp: gian lận hoặc bình thường.")
 
+    # Cân bằng lại dữ liệu âm/dương để mô hình không bị lệch quá mạnh do class imbalance.
     sample_fraction = min((fraud_count * TRAIN_NEGATIVE_RATIO) / normal_count, 1.0)
     balanced_df = fraud_df.union(normal_df.sample(False, sample_fraction, seed=42))
     train_df, test_df = balanced_df.randomSplit([0.8, 0.2], seed=42)
@@ -85,6 +103,7 @@ def main() -> None:
     )
     pipeline = Pipeline(stages=[assembler, scaler, rf])
 
+    # Random Forest là phần AI cốt lõi của đồ án.
     model = pipeline.fit(train_df)
     predictions = model.transform(test_df)
 
@@ -101,6 +120,7 @@ def main() -> None:
     y_pred = scored_pd["prediction"]
     y_score = scored_pd["ml_probability"]
 
+    # Bộ chỉ số để dùng trực tiếp trong báo cáo và lúc bảo vệ.
     metrics = {
         "auc_roc": round(float(auc_roc), 4),
         "auc_pr": round(float(auc_pr), 4),
@@ -112,6 +132,7 @@ def main() -> None:
         "so_dong_binh_thuong_huan_luyen": int(normal_count),
         "ti_le_lay_mau_am": round(float(sample_fraction), 4),
     }
+    # Lưu model để Gold stream tái sử dụng trong online scoring.
     model.write().overwrite().save(PATHS["model"])
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -122,6 +143,7 @@ def main() -> None:
     precision_curve, recall_curve, _ = precision_recall_curve(y_true, y_score)
     cm = confusion_matrix(y_true, y_pred)
 
+    # Bộ biểu đồ phục vụ tiêu chí báo cáo và giải trình.
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     axes[0].plot(fpr, tpr, color="#c2410c", lw=2, label=f"AUC={sk_auc(fpr, tpr):.4f}")
     axes[0].plot([0, 1], [0, 1], "--", color="#64748b", lw=1)

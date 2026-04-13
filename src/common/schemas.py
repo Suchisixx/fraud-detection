@@ -1,5 +1,14 @@
 from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType, TimestampType
 
+"""
+Vai trò:
+- Khai báo schema gốc và schema theo từng tầng dữ liệu.
+
+Liên hệ tiêu chí:
+- Kiến trúc dữ liệu: schema rõ ràng giúp giải thích dữ liệu qua Bronze / Silver.
+- Hiệu quả xử lý: khai báo schema tường minh giúp Spark đọc ổn định hơn infer schema.
+"""
+
 
 PAYSIM_SCHEMA = StructType(
     [

@@ -17,8 +17,18 @@ from src.common.config import (
 from src.common.schemas import PAYSIM_SCHEMA
 from src.common.spark import get_spark
 
+"""
+Vai trò:
+- Mô phỏng streaming bằng cách cắt PaySim thành nhiều lô CSV nhỏ.
+
+Liên hệ tiêu chí:
+- Hình thức báo cáo và giải trình: giúp demo trực quan luồng realtime.
+- Kiến trúc dữ liệu: chứng minh dữ liệu đi vào pipeline theo micro-batch.
+"""
+
 
 def main() -> None:
+    # Job này phục vụ demo; không phải một phần của production ingestion thật.
     ensure_runtime_dirs()
     spark = get_spark("FraudSimulator")
 
@@ -35,6 +45,7 @@ def main() -> None:
     fraud_rows = full_df.filter("isFraud = 1").count()
     print(f"Đã nạp {total_rows:,} dòng | gian_lận={fraud_rows:,} ({fraud_rows / total_rows * 100:.2f}%)")
 
+    # Xóa dữ liệu stream cũ để mỗi lần demo đều có đầu vào sạch và dễ quan sát.
     if STREAM_INPUT_DIR.exists():
         shutil.rmtree(STREAM_INPUT_DIR)
     STREAM_INPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -45,6 +56,7 @@ def main() -> None:
     sleep_seconds = float(os.getenv("SIMULATOR_SLEEP_SECONDS", SIMULATOR_SLEEP_SECONDS))
     fraud_ratio = float(os.getenv("SIMULATOR_FRAUD_RATIO", SIMULATOR_FRAUD_RATIO))
 
+    # Tăng mật độ fraud trong demo để Gold alerts hiện rõ hơn khi trình bày.
     fraud_pool = full_df.filter("isFraud = 1").cache()
     normal_pool = full_df.filter("isFraud = 0").cache()
     fraud_per_batch = max(1, int(batch_size * fraud_ratio))

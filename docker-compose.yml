@@ -1,15 +1,19 @@
 services:
   fraud:
+    # Service chính của dự án: chứa toàn bộ môi trường Spark/Python để chạy demo.
     build: .
     working_dir: /workspace
     volumes:
+      # Mount cả project để code và dữ liệu trong máy host được dùng trực tiếp.
       - ./:/workspace
     environment:
+      # Các biến môi trường dưới đây điều khiển cách Spark chạy trong container.
       - WORKSPACE_ROOT=/workspace
       - PYTHONPATH=/workspace
       - SPARK_LOCAL_DIRS=/tmp/spark-tmp
       - SPARK_SHUFFLE_PARTITIONS=8
       - SPARK_DRIVER_MEMORY=2g
+    # Giới hạn RAM vừa đủ cho môi trường local demo.
     mem_limit: 4g
     mem_reservation: 2g
     restart: unless-stopped
