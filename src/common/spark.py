@@ -22,7 +22,7 @@ Vai trò:
 - Khởi tạo SparkSession chuẩn cho toàn dự án.
 - Tạo Delta table rỗng khi cần để các stream downstream có thể khởi động trước.
 
-Liên hệ tiêu chí:
+Tiêu chí:
 - Hiệu quả xử lý và tối ưu mã nguồn: mọi cấu hình Spark tối ưu local demo được
   gom tại đây, giúp dễ kiểm soát shuffle, bộ nhớ và Delta integration.
 - Kiến trúc dữ liệu và khả năng mở rộng: các job dùng cùng một chuẩn SparkSession.

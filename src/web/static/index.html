@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FraudVision | Dashboard Demo Big Data</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="backdrop backdrop-a"></div>
+      <div class="backdrop backdrop-b"></div>
+
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">ĐỀ TÀI 4 · BIG DATA 2026</p>
+          <h1>FraudVision Dashboard</h1>
+          <p class="hero-text">
+            Hệ thống phát hiện gian lận giao dịch ví điện tử theo thời gian thực
+            với Spark Structured Streaming, Delta Lake và mô hình lai Rule + ML.
+          </p>
+        </div>
+        <div class="hero-side">
+          <div class="status-card">
+            <span id="statusBadge" class="status-badge status-waiting">Đang đợi dữ liệu</span>
+            <p class="status-label">Trạng thái demo</p>
+            <p id="generatedAt" class="status-time">Lần cập nhật: --</p>
+            <button id="refreshImageButton" class="ghost-button" type="button">Làm mới dashboard</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard-grid">
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Tổng quan batch mới nhất</p>
+              <h2>Chỉ số xử lý realtime</h2>
+            </div>
+            <p class="panel-note">Tự động cập nhật mỗi 5 giây</p>
+          </div>
+
+          <div class="kpi-grid">
+            <article class="metric-card">
+              <p class="metric-label">Mã lô mới nhất</p>
+              <p id="batchId" class="metric-value">--</p>
+            </article>
+            <article class="metric-card">
+              <p class="metric-label">Số dòng xử lý</p>
+              <p id="rowsCount" class="metric-value">--</p>
+            </article>
+            <article class="metric-card metric-alert">
+              <p class="metric-label">Số cảnh báo</p>
+              <p id="alertsCount" class="metric-value">--</p>
+            </article>
+            <article class="metric-card">
+              <p class="metric-label">Độ trễ mỗi batch</p>
+              <p id="latencyMs" class="metric-value">--</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Mô hình</p>
+              <h2>Hiệu quả huấn luyện</h2>
+            </div>
+          </div>
+          <div id="trainingMetrics" class="stats-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">So sánh</p>
+              <h2>Rule / Máy học / Lai</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mô hình</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1</th>
+                </tr>
+              </thead>
+              <tbody id="evaluationTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Tài khoản nổi bật</p>
+              <h2>Top tài khoản rủi ro cao</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tài khoản</th>
+                  <th>Số cảnh báo</th>
+                  <th>Tổng số tiền</th>
+                  <th>Điểm trung bình</th>
+                </tr>
+              </thead>
+              <tbody id="riskAccountsTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Báo cáo tổng hợp</p>
+              <h2>Dashboard phân tích</h2>
+            </div>
+            <p class="panel-note">Ảnh được tạo từ pipeline Gold</p>
+          </div>
+          <div id="dashboardImageState" class="empty-state hidden">Chưa có dashboard.png</div>
+          <div id="dashboardImageFrame" class="image-frame">
+            <img id="dashboardImage" alt="Dashboard tổng hợp Big Data" />
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Kiến trúc</p>
+              <h2>Luồng xử lý hệ thống</h2>
+            </div>
+          </div>
+          <div class="pipeline-strip">
+            <div class="pipeline-step">
+              <span class="step-tag">Bronze</span>
+              <h3>Ingest stream</h3>
+              <p>Đọc CSV theo micro-batch và ghi vào Delta Bronze.</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <span class="step-tag">Silver</span>
+              <h3>Làm sạch + Rule</h3>
+              <p>Chuẩn hóa, tạo feature, áp dụng blacklist và luật nghiệp vụ.</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <span class="step-tag">Gold</span>
+              <h3>Hybrid scoring</h3>
+              <p>Hợp nhất rule score và xác suất ML để sinh cảnh báo cuối.</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <span class="step-tag">Reports</span>
+              <h3>Trình bày</h3>
+              <p>Cập nhật metrics, top risk account và dashboard để demo.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

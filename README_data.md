@@ -4,7 +4,7 @@
 
 Tài liệu dùng để giải trình phần **dữ liệu, luồng lưu trữ, xử lý, tối ưu hóa, giám sát và thuật toán nòng cốt** của đồ án phát hiện gian lận thời gian thực với bộ dữ liệu **PaySim**.
 
-Đây là phần nên dùng khi giảng viên hỏi các câu như:
+Đây là phần nên dùng khi cho các câu như:
 
 - Nhóm lấy dữ liệu từ đâu
 - Dữ liệu có định dạng gì

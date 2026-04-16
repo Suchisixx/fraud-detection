@@ -234,6 +234,28 @@ Demo nhanh:
 .\scripts\run_demo_docker.ps1
 ```
 
+### 10.1. Mở dashboard web để trình chiếu
+
+Sau khi pipeline đã sinh các file trong `data/reports`, có thể mở dashboard web bằng:
+
+```powershell
+python -m src.web.dashboard_server
+```
+
+Dashboard mặc định chạy tại:
+
+```text
+http://127.0.0.1:8008
+```
+
+Dashboard sẽ tự làm mới mỗi 5 giây và đọc trực tiếp các file báo cáo như:
+
+- `data/reports/latest_gold_batch.json`
+- `data/reports/training_metrics.json`
+- `data/reports/evaluation_summary.csv`
+- `data/reports/top_risk_accounts.csv`
+- `data/reports/dashboard.png`
+
 ## 11. Kết quả đầu ra quan trọng
 
 Các file và bảng nên dùng khi demo:
