@@ -9,7 +9,6 @@ Liên hệ tiêu chí:
 - Hiệu quả xử lý: khai báo schema tường minh giúp Spark đọc ổn định hơn infer schema.
 """
 
-
 PAYSIM_SCHEMA = StructType(
     [
         StructField("step", IntegerType(), True),

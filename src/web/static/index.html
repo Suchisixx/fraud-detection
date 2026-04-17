@@ -13,7 +13,7 @@
 
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">ĐỀ TÀI 4 · BIG DATA 2026</p>
+          <p class="eyebrow">Đề tài 4 · Big Data 2026</p>
           <h1>FraudVision Dashboard</h1>
           <p class="hero-text">
             Hệ thống phát hiện gian lận giao dịch ví điện tử theo thời gian thực
@@ -57,6 +57,25 @@
               <p class="metric-label">Độ trễ mỗi batch</p>
               <p id="latencyMs" class="metric-value">--</p>
             </article>
+          </div>
+        </section>
+
+        <section class="panel panel-wide">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Dữ liệu theo tầng</p>
+              <h2>Raw → Bronze → Silver → Gold → Reports</h2>
+            </div>
+            <p class="panel-note">Hiển thị số lượng và thay đổi dữ liệu qua từng tầng</p>
+          </div>
+          <div id="layersMessage" class="layer-message hidden"></div>
+          <div id="layersJourney" class="layer-journey"></div>
+          <div class="report-files-panel">
+            <div class="report-files-copy">
+              <p class="panel-kicker">Artifacts</p>
+              <h3>File report hiện có</h3>
+            </div>
+            <div id="reportFiles" class="report-file-list"></div>
           </div>
         </section>
 
@@ -137,27 +156,33 @@
           </div>
           <div class="pipeline-strip">
             <div class="pipeline-step">
+              <span class="step-tag">Raw</span>
+              <h3>Dữ liệu gốc</h3>
+              <p>PaySim lịch sử dùng để train model, seed blacklist và mô phỏng stream.</p>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
               <span class="step-tag">Bronze</span>
               <h3>Ingest stream</h3>
-              <p>Đọc CSV theo micro-batch và ghi vào Delta Bronze.</p>
+              <p>Đọc CSV theo micro-batch, chuẩn hóa tên cột và thêm metadata ingest.</p>
             </div>
             <div class="pipeline-arrow">→</div>
             <div class="pipeline-step">
               <span class="step-tag">Silver</span>
               <h3>Làm sạch + Rule</h3>
-              <p>Chuẩn hóa, tạo feature, áp dụng blacklist và luật nghiệp vụ.</p>
+              <p>Làm sạch dữ liệu, tạo feature engineering và áp dụng luật nghiệp vụ.</p>
             </div>
             <div class="pipeline-arrow">→</div>
             <div class="pipeline-step">
               <span class="step-tag">Gold</span>
               <h3>Hybrid scoring</h3>
-              <p>Hợp nhất rule score và xác suất ML để sinh cảnh báo cuối.</p>
+              <p>Hợp nhất rule score và xác suất ML để sinh cảnh báo cuối cùng.</p>
             </div>
             <div class="pipeline-arrow">→</div>
             <div class="pipeline-step">
               <span class="step-tag">Reports</span>
               <h3>Trình bày</h3>
-              <p>Cập nhật metrics, top risk account và dashboard để demo.</p>
+              <p>Cập nhật metrics, top risk account và dashboard để demo thuyết trình.</p>
             </div>
           </div>
         </section>

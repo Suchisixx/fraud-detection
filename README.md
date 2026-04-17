@@ -248,6 +248,18 @@ Dashboard mặc định chạy tại:
 http://127.0.0.1:8008
 ```
 
+Nếu cổng `8008` đang bị một process cũ giữ, có thể chạy dashboard ở cổng khác, ví dụ:
+
+```powershell
+python -m src.web.dashboard_server --port 8010
+```
+
+Khi đó dashboard sẽ mở ở:
+
+```text
+http://127.0.0.1:8010
+```
+
 Dashboard sẽ tự làm mới mỗi 5 giây và đọc trực tiếp các file báo cáo như:
 
 - `data/reports/latest_gold_batch.json`
@@ -255,6 +267,24 @@ Dashboard sẽ tự làm mới mỗi 5 giây và đọc trực tiếp các file 
 - `data/reports/evaluation_summary.csv`
 - `data/reports/top_risk_accounts.csv`
 - `data/reports/dashboard.png`
+
+Ngoài ra dashboard còn đọc:
+
+- `data/raw/paysim.csv`
+- `data/delta/bronze/_delta_log`
+- `data/delta/silver/_delta_log`
+- `data/delta/gold_scored/_delta_log`
+- `data/delta/gold_alerts/_delta_log`
+
+để hiển thị hành trình dữ liệu `Raw -> Bronze -> Silver -> Gold -> Reports`.
+
+#### Lưu ý về môi trường chạy web
+
+- Nếu Python local có `pyspark` và `delta-spark`, dashboard có thể đọc trực tiếp Delta table bằng Spark.
+- Nếu Python local chưa có `pyspark`, dashboard vẫn chạy ở chế độ fallback:
+  - đọc `CSV` và `Delta log`
+  - vẫn hiển thị được số lượng dữ liệu qua từng tầng
+  - không cần bật Spark chỉ để xem web
 
 ## 11. Kết quả đầu ra quan trọng
 
